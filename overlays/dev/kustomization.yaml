@@ -1,5 +1,5 @@
 resources:
-  - ../../base
+  - ../../base-apps
 
 namePrefix: dev-
 commonLabels:
