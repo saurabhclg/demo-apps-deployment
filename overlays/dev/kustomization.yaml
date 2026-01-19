@@ -1,0 +1,21 @@
+resources:
+  - ../../base
+
+namePrefix: dev-
+commonLabels:
+  env: development
+
+images:
+  - name: devopsabbacr.azurecr.io/hello-abb
+    newTag: 1.0.1
+
+# This section overrides the empty values in your base/secret-provider.yaml
+patches:
+  - target:
+      kind: SecretProviderClass
+      name: hello-abb-secrets
+    patch: |-
+      - op: replace
+        path: /spec/parameters/userAssignedIdentityID
+        value: "d8cc8071-7283-4d46-ab0b-ecce0991bbbd"
+      

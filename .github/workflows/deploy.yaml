@@ -1,0 +1,52 @@
+name: Manual Deploy to AKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Select the Environment to deploy'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+          - dev
+          - prod
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    # Mapping inputs to specific Azure Resource Names
+    env:
+      RG_NAME: ${{ github.event.inputs.environment == 'prod' && 'rg-aks-prod' || 'rg-aks-dev' }}
+      CLUSTER_NAME: ${{ github.event.inputs.environment == 'prod' && 'aks-prod' || 'aks-dev' }}
+      DEPLOY_PATH: 'overlays/${{ github.event.inputs.environment }}'
+
+    steps:
+      - name: Checkout Manifests
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set AKS Context
+        uses: azure/aks-set-context@v3
+        with:
+          resource-group: ${{ env.RG_NAME }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+
+      - name: Build and Apply Manifests
+        run: |
+          echo "Targeting Environment: ${{ github.event.inputs.environment }}"
+          echo "Resource Group: ${{ env.RG_NAME }}"
+          echo "Cluster: ${{ env.CLUSTER_NAME }}"
+          
+          # This command combines 'base' + 'overlay' and applies it to the cluster
+          kubectl apply -k ${{ env.DEPLOY_PATH }}
+
+      - name: Verify Deployment Status
+        run: |
+          # Checks if the pods start correctly
+          kubectl rollout status deployment/${{ github.event.inputs.environment }}-hello-abb --timeout=90s
