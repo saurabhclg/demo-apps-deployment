@@ -18,4 +18,10 @@ patches:
       - op: replace
         path: /spec/parameters/userAssignedIdentityID
         value: "d8cc8071-7283-4d46-ab0b-ecce0991bbbd"
-      
+  - target:
+      kind: Deployment
+      name: hello-abb
+    patch: |-
+      - op: replace
+        path: /spec/template/spec/volumes/0/csi/volumeAttributes/secretProviderClass
+        value: "dev-hello-abb-secrets"
