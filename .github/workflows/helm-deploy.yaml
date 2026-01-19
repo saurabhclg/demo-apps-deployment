@@ -1,0 +1,37 @@
+name: Helm Deploy to AKS
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'dev or prod'
+        required: true
+        default: 'dev'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+
+      - name: Azure Login
+        uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Get AKS Credentials
+        run: |
+          az aks get-credentials --resource-group rg-aks-${{ github.event.inputs.environment }} --name aks-${{ github.event.inputs.environment }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install hello-abb-release ./charts/hello-abb \
+            --namespace helm-deployment \
+            --set azure.tenantId=${{ secrets.TENANT_ID }} \
+            --set azure.keyvaultName=${{ secrets.KEYVAULTNAME }} \
+            --set azure.userAssignedIdentityID=${{ secrets.USERASSIGNEDIDENTITYID }} \
+            --set image.tag="1.0.1"
