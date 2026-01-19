@@ -26,7 +26,7 @@ jobs:
       - name: Checkout Manifests
         uses: actions/checkout@v4
 
-      - name: Azure Login
+      - name: Login to Azure
         uses: azure/login@v1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
