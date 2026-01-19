@@ -24,6 +24,9 @@ jobs:
         run: |
           az aks get-credentials --resource-group rg-aks-${{ github.event.inputs.environment }} --name aks-${{ github.event.inputs.environment }}
 
+      - name: Lint Helm Chart
+        run: helm lint ./charts/hello-abb
+
       - name: Install Helm
         uses: azure/setup-helm@v3
 
